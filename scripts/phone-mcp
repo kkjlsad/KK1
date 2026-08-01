@@ -1,0 +1,126 @@
+#!/data/data/com.termux/files/usr/bin/sh
+set -eu
+
+APP_DIR="${PHONE_MCP_HOME:-$HOME/.local/share/termux-phone-mcp}"
+CONFIG_DIR="$HOME/.config/termux-phone-mcp"
+ENV_FILE="$CONFIG_DIR/.env"
+RUN_DIR="$HOME/.local/state/termux-phone-mcp"
+PID_FILE="$RUN_DIR/server.pid"
+LOG_FILE="$RUN_DIR/server.log"
+
+mkdir -p "$RUN_DIR"
+
+load_env() {
+  if [ ! -f "$ENV_FILE" ]; then
+    echo "配置不存在：$ENV_FILE。请重新执行安装脚本。" >&2
+    exit 1
+  fi
+  set -a
+  # shellcheck disable=SC1090
+  . "$ENV_FILE"
+  set +a
+}
+
+is_running() {
+  [ -f "$PID_FILE" ] || return 1
+  pid="$(sed -n '1p' "$PID_FILE")"
+  [ -n "$pid" ] && kill -0 "$pid" 2>/dev/null
+}
+
+set_flag() {
+  key="$1"
+  value="$2"
+  tmp="$ENV_FILE.tmp"
+  awk -F= -v key="$key" -v value="$value" '
+    BEGIN { found=0 }
+    $1 == key { print key "=" value; found=1; next }
+    { print }
+    END { if (!found) print key "=" value }
+  ' "$ENV_FILE" > "$tmp"
+  mv "$tmp" "$ENV_FILE"
+  chmod 600 "$ENV_FILE"
+}
+
+case "${1:-status}" in
+  start)
+    load_env
+    if is_running; then
+      echo "termux-phone-mcp 已运行，PID $(sed -n '1p' "$PID_FILE")"
+      exit 0
+    fi
+    cd "$APP_DIR"
+    nohup node dist/index.js >>"$LOG_FILE" 2>&1 </dev/null &
+    echo "$!" > "$PID_FILE"
+    sleep 1
+    if ! is_running; then
+      echo "启动失败：" >&2
+      tail -n 30 "$LOG_FILE" >&2 || true
+      exit 1
+    fi
+    echo "已启动：http://127.0.0.1:${PHONE_MCP_PORT:-8765}/mcp"
+    ;;
+  stop)
+    if is_running; then
+      pid="$(sed -n '1p' "$PID_FILE")"
+      kill "$pid"
+      rm -f "$PID_FILE"
+      echo "已停止"
+    else
+      rm -f "$PID_FILE"
+      echo "当前未运行"
+    fi
+    ;;
+  restart)
+    "$0" stop
+    "$0" start
+    ;;
+  status)
+    load_env
+    if is_running; then
+      echo "运行中，PID $(sed -n '1p' "$PID_FILE")"
+      curl -fsS "http://127.0.0.1:${PHONE_MCP_PORT:-8765}/healthz" || true
+      echo
+    else
+      echo "未运行"
+      exit 1
+    fi
+    ;;
+  test)
+    load_env
+    curl -fsS "http://127.0.0.1:${PHONE_MCP_PORT:-8765}/healthz"
+    echo
+    ;;
+  show-config)
+    load_env
+    echo "类型：Streamable HTTP"
+    echo "URL：http://127.0.0.1:${PHONE_MCP_PORT:-8765}/mcp"
+    echo "Header：Authorization"
+    echo "Value：Bearer $PHONE_MCP_TOKEN"
+    echo "写操作：${PHONE_MCP_ALLOW_ACTIONS:-0}"
+    echo "任意命令：${PHONE_MCP_ALLOW_COMMANDS:-0}"
+    ;;
+  enable-actions)
+    set_flag PHONE_MCP_ALLOW_ACTIONS 1
+    "$0" restart
+    ;;
+  disable-actions)
+    set_flag PHONE_MCP_ALLOW_ACTIONS 0
+    "$0" restart
+    ;;
+  enable-commands)
+    set_flag PHONE_MCP_ALLOW_COMMANDS 1
+    "$0" restart
+    echo "任意命令权限已开启。请在 RikkaHub 为 phone_run_termux_command 和 phone_exec_proot 打开每次审批。"
+    ;;
+  disable-commands)
+    set_flag PHONE_MCP_ALLOW_COMMANDS 0
+    "$0" restart
+    ;;
+  logs)
+    tail -n 100 "$LOG_FILE"
+    ;;
+  *)
+    echo "用法：phone-mcp {start|stop|restart|status|test|show-config|enable-actions|disable-actions|enable-commands|disable-commands|logs}" >&2
+    exit 2
+    ;;
+esac

@@ -1,0 +1,10 @@
+export declare const SERVER_NAME = "termux-phone-mcp-server";
+export declare const SERVER_VERSION = "0.1.0";
+export declare const HOST: string;
+export declare const PORT: number;
+export declare const AUTH_TOKEN: string;
+export declare const ALLOW_ACTIONS: boolean;
+export declare const ALLOW_COMMANDS: boolean;
+export declare const MAX_OUTPUT_CHARS = 24000;
+export declare const TERMUX_HOME: string;
+export declare const SERVICE_ROOT: string;

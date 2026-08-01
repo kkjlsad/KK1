@@ -1,0 +1,26 @@
+{
+  "name": "termux-phone-mcp-server",
+  "version": "0.1.0",
+  "description": "A local Streamable HTTP MCP server that exposes Termux and Android device capabilities to RikkaHub.",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "smoke": "node scripts/smoke.mjs",
+    "test": "npm run build && npm run smoke"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "express": "5.2.1",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

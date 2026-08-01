@@ -1,0 +1,10 @@
+export declare function requireActions(): void;
+export declare function requireCommands(): void;
+export declare function listEnvironments(): Promise<Record<string, unknown>>;
+export declare function installProot(alias: string): Promise<Record<string, unknown>>;
+export declare function removeProot(alias: string, confirm: string): Promise<Record<string, unknown>>;
+export declare function execInProot(alias: string, command: string, timeoutSeconds: number): Promise<Record<string, unknown>>;
+export declare function runTermuxCommand(command: string, timeoutSeconds: number): Promise<Record<string, unknown>>;
+export declare function installPackages(packages: string[]): Promise<Record<string, unknown>>;
+export declare function manageCompose(runtime: "auto" | "docker" | "podman", projectDirectory: string, action: "pull" | "up" | "restart" | "stop" | "down", confirm?: string): Promise<Record<string, unknown>>;
+export declare function prepareServiceRoot(): Promise<string>;
