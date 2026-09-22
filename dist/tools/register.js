@@ -6,6 +6,7 @@ import { getBatteryStatus, getCapabilities, getNetworkStatus, getPhoneOverview, 
 import { failure, success, wrap } from "./response.js";
 import { registerDeviceTools } from "./register-device.js";
 import { registerFileTools } from "./register-files.js";
+import { registerAndroidTools } from "./register-android.js";
 const EmptySchema = z.object({}).strict();
 const annotations = {
     readOnly: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -165,5 +166,6 @@ export function registerTools(server) {
     }));
     registerDeviceTools(server);
     registerFileTools(server);
+    registerAndroidTools(server);
 }
 //# sourceMappingURL=register.js.map

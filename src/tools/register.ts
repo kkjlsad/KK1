@@ -23,6 +23,7 @@ import {
 import { failure, success, wrap } from "./response.js";
 import { registerDeviceTools } from "./register-device.js";
 import { registerFileTools } from "./register-files.js";
+import { registerAndroidTools } from "./register-android.js";
 
 const EmptySchema = z.object({}).strict();
 const annotations = {
@@ -259,4 +260,5 @@ export function registerTools(server: McpServer): void {
 
   registerDeviceTools(server);
   registerFileTools(server);
+  registerAndroidTools(server);
 }
