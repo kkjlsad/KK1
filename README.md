@@ -10,19 +10,23 @@
 - 检测并管理设备上真实存在的 Docker/Podman Compose；没有运行时就明确报告，不把 PRoot 当 Docker。
 - 调整亮度和音量。
 - 可选授予模型 Termux 或 PRoot 任意命令权限。
+- 手机提示与控制：Toast、震动、TTS 朗读、剪贴板读写、手电筒、媒体控制、打开链接。
+- 文件与下载：列出/读取/写入 Termux HOME 内文件，用 curl 下载到手机共享存储。
+- Android 数据：通知栏、短信、通话记录、联系人、定位、传感器、相机拍照。
 
 ## Android 的硬边界
 
 - 普通非 root Termux 无法可靠读取其他 App 的 CPU/内存、逐 App 耗电或完整 `dumpsys batterystats`。
 - `phone_sample_power` 是 BatteryManager 电流 × 电压的整机趋势估算，适合比较调整前后，不是逐 App 电量归因。
 - PRoot 是用户态 Linux 文件系统，不是真正容器。Docker/Podman 通常需要 root、内核 namespace/cgroup 支持或特制系统。
+- 无 root 时无法截图（`screencap`）、无法运行 `dumpsys`、无法列出完整应用列表（`pm list packages` 被拒）。`phone_list_installed_apps` 只能靠共享存储 `Android/media`、`Android/obb` 的目录名推断，结果不完整。
 
 ## 一条命令安装
 
 先安装官方 Termux。为读取电池、Wi-Fi、亮度和音量，还要安装与 Termux **同来源签名**的 [Termux:API APK](https://github.com/termux/termux-api/releases)。然后在 Termux 运行：
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/188zjl/termux-phone-mcp/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/kkjlsad/KK1/main/install.sh | bash
 ```
 
 安装程序会：
@@ -87,8 +91,36 @@ phone-mcp show-config
 
 ## 工具清单
 
-共 16 个工具：
+共 37 个工具。
 
-- 只读：`phone_get_overview`、`phone_get_battery`、`phone_sample_power`、`phone_get_resources`、`phone_get_thermal`、`phone_get_network`、`phone_get_capabilities`、`phone_list_environments`
-- 有限写入：`phone_install_packages`、`phone_install_proot`、`phone_remove_proot`、`phone_manage_compose`、`phone_set_brightness`、`phone_set_volume`
-- 高权限命令：`phone_exec_proot`、`phone_run_termux_command`
+**只读**
+
+- 系统状态：`phone_get_overview`、`phone_get_battery`、`phone_sample_power`、`phone_get_resources`、`phone_get_thermal`、`phone_get_network`、`phone_get_capabilities`、`phone_list_environments`
+- 文件：`phone_list_files`、`phone_read_file`
+- 剪贴板：`phone_clipboard_get`
+- Android 数据（需授权，见下节）：`phone_get_notifications`、`phone_get_sms`、`phone_get_call_log`、`phone_get_contacts`、`phone_get_location`、`phone_get_sensors`、`phone_list_installed_apps`
+
+**有限写入**（需要 `PHONE_MCP_ALLOW_ACTIONS=1`）
+
+- 环境管理：`phone_install_packages`、`phone_install_proot`、`phone_remove_proot`、`phone_manage_compose`
+- 系统设置：`phone_set_brightness`、`phone_set_volume`
+- 提示与控制：`phone_toast`、`phone_vibrate`、`phone_speak`、`phone_torch`、`phone_media_control`、`phone_open_url`、`phone_clipboard_set`
+- 文件与下载：`phone_write_file`、`phone_download`
+- 相机与消息：`phone_camera_photo`、`phone_send_sms`
+
+**高权限命令**（需要 `PHONE_MCP_ALLOW_COMMANDS=1`）
+
+- `phone_exec_proot`、`phone_run_termux_command`
+
+## 需要 Android 权限的工具
+
+下列工具依赖你在系统里给 Termux:API 授权，未授权时会返回带指引的错误：
+
+| 工具 | 需要的权限 |
+| --- | --- |
+| `phone_get_sms`、`phone_send_sms` | 短信（读取 / 发送） |
+| `phone_get_contacts` | 通讯录 |
+| `phone_get_call_log` | 通话记录 |
+| `phone_get_location` | 位置信息 |
+| `phone_camera_photo` | 相机 |
+| `phone_get_notifications` | 通知使用权（特殊权限，不在应用权限列表里） |

@@ -1,7 +1,7 @@
 #!/data/data/com.termux/files/usr/bin/bash
 set -euo pipefail
 
-REPO_URL="${PHONE_MCP_REPO_URL:-https://github.com/188zjl/termux-phone-mcp.git}"
+REPO_URL="${PHONE_MCP_REPO_URL:-https://github.com/kkjlsad/KK1.git}"
 APP_DIR="${PHONE_MCP_HOME:-$HOME/.local/share/termux-phone-mcp}"
 CONFIG_DIR="$HOME/.config/termux-phone-mcp"
 ENV_FILE="$CONFIG_DIR/.env"
