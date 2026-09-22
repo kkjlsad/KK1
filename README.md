@@ -91,7 +91,7 @@ phone-mcp show-config
 
 ## 工具清单
 
-共 37 个工具。
+共 43 个工具。
 
 **只读**
 
@@ -111,6 +111,13 @@ phone-mcp show-config
 **高权限命令**（需要 `PHONE_MCP_ALLOW_COMMANDS=1`）
 
 - `phone_exec_proot`、`phone_run_termux_command`
+
+## 文件与 Git 工作流
+
+- `phone_edit_file`、`phone_move_path`、`phone_delete_path`（删除需确认串）
+- `phone_search_files`（按文件名或内容搜索）
+- `phone_git`（status / diff / log / add / commit / push / pull…）
+- `phone_clone_repo`
 
 ## 需要 Android 权限的工具
 
