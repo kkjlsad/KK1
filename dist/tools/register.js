@@ -3,6 +3,9 @@ import { ALLOW_ACTIONS, ALLOW_COMMANDS } from "../constants.js";
 import { commandExists, runCommand } from "../services/command.js";
 import { execInProot, installPackages, installProot, listEnvironments, manageCompose, removeProot, runTermuxCommand, } from "../services/environments.js";
 import { getBatteryStatus, getCapabilities, getNetworkStatus, getPhoneOverview, getResourceStatus, getThermalStatus, samplePower, } from "../services/phone.js";
+import { failure, success, wrap } from "./response.js";
+import { registerDeviceTools } from "./register-device.js";
+import { registerFileTools } from "./register-files.js";
 const EmptySchema = z.object({}).strict();
 const annotations = {
     readOnly: { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: false },
@@ -160,21 +163,7 @@ export function registerTools(server) {
             throw new Error(result.stderr || "音量调整失败");
         return { stream, volume, changed: true };
     }));
-}
-function success(data) {
-    const payload = { ok: true, timestamp: new Date().toISOString(), data };
-    return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }], structuredContent: payload };
-}
-function failure(error, hint) {
-    const payload = { ok: false, timestamp: new Date().toISOString(), error, hint };
-    return { isError: true, content: [{ type: "text", text: JSON.stringify(payload, null, 2) }], structuredContent: payload };
-}
-async function wrap(operation) {
-    try {
-        return success(await operation());
-    }
-    catch (error) {
-        return failure(error instanceof Error ? error.message : String(error));
-    }
+    registerDeviceTools(server);
+    registerFileTools(server);
 }
 //# sourceMappingURL=register.js.map

@@ -20,7 +20,9 @@ import {
   getThermalStatus,
   samplePower,
 } from "../services/phone.js";
-import type { ToolPayload } from "../types.js";
+import { failure, success, wrap } from "./response.js";
+import { registerDeviceTools } from "./register-device.js";
+import { registerFileTools } from "./register-files.js";
 
 const EmptySchema = z.object({}).strict();
 const annotations = {
@@ -254,26 +256,7 @@ export function registerTools(server: McpServer): void {
       return { stream, volume, changed: true };
     }),
   );
-}
 
-function success(data: unknown): { content: Array<{ type: "text"; text: string }>; structuredContent: ToolPayload } {
-  const payload: ToolPayload = { ok: true, timestamp: new Date().toISOString(), data };
-  return { content: [{ type: "text", text: JSON.stringify(payload, null, 2) }], structuredContent: payload };
-}
-
-function failure(error: string, hint?: string): {
-  isError: true;
-  content: Array<{ type: "text"; text: string }>;
-  structuredContent: ToolPayload;
-} {
-  const payload: ToolPayload = { ok: false, timestamp: new Date().toISOString(), error, hint };
-  return { isError: true, content: [{ type: "text", text: JSON.stringify(payload, null, 2) }], structuredContent: payload };
-}
-
-async function wrap(operation: () => Promise<unknown>): Promise<ReturnType<typeof success> | ReturnType<typeof failure>> {
-  try {
-    return success(await operation());
-  } catch (error: unknown) {
-    return failure(error instanceof Error ? error.message : String(error));
-  }
+  registerDeviceTools(server);
+  registerFileTools(server);
 }
